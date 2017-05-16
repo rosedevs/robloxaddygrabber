@@ -7,12 +7,18 @@ using namespace std;
 
 #define convert(a)(a + 0x400000 - (DWORD)GetModuleHandleA(0))
 
+/*
+Struct to store each aob below easily instead of scanning each individually
+*/
 struct AOBType {
 	string name;
 	const char* first;
 	const char* second;
 };
 
+/*
+AOB Scanning
+*/
 namespace AOB {
 	bool Check(const BYTE* pd, const BYTE* aob, const char* mask)
 	{
@@ -34,7 +40,18 @@ namespace AOB {
 }
 
 void main() {
+
+	/*
+	Storing in an array to be easily accessed when we scan them.
+	*/
 	AOBType aobs[] = { 
+
+		/*
+		Here we can add new aobs, they're defined in the format 
+		AOBType { "function", "aob", "mask" }
+
+		Pretty simple if you want to remove, or add additional aobs to the scan list.
+		*/
 		AOBType { "openstate", "\x55\x8B\xEC\x56\x57\x6A\x05\xFF\x75\x08\x8B\xF9\x33\xF6\xE8\x00\x00\x00\x00", "xxxxxxxxxxxxxxx????" },
 		AOBType { "retcheck", "\x55\x8B\xEC\x64\xA1\x00\x00\x00\x00\x6A\xFF\x68\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x83\xEC\x0C\x57\x6A\x00", "xxxxx????xxx????xxxx????xxxxxx" },
 		AOBType { "lua_getfield", "\x55\x8B\xEC\x83\xEC\x10\x53\x56\x8B\x75\x08\x57\xFF\x75\x0C\x56\xE8\x00\x00\x00\x00\x8B\x55\x10\x83\xC4\x08\x8B\xCA\x8B\xF8\x8D\x59\x01\x8A\x01\x41\x84\xC0\x75\xF9\x2B\xCB\x51\x52\x56\xE8\x00\x00\x00\x00\xFF\x76\x10", "xxxxxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxxxxxxx????xxx" },
@@ -70,12 +87,18 @@ void main() {
 		AOBType { "lua_close", "\x55\x8B\xEC\x64\xA1\x00\x00\x00\x00\x6A\xFF\x68\x00\x00\x00\x00\x50\x64\x89\x25\x00\x00\x00\x00\x56\x57\x8B\x71\x04", "xxxxx????xxx????xxxx????xxxxx" }
 	};
 
+	/*
+	Iterating through our array
+	*/
 	for (AOBType aob : aobs) {
-		cout << aob.name << " - 0x" << std::hex << convert(AOB::FindPattern(aob.first, aob.second)) << endl;
+		cout << /*Accessing data inside our struct which we have from iterating through our array*/aob.name << " - 0x" << std::hex << convert(AOB::FindPattern(aob.first, aob.second)) << endl;
 	}
 }
 
 void CreateConsole() {
+	/*
+	Creating the console so we can view the addresses once they're scanned.
+	*/
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONIN$", "r", stdin);
@@ -86,6 +109,9 @@ void CreateConsole() {
 	VirtualProtect(&MessageBoxA, 5, PAGE_EXECUTE_READWRITE, &OldPerm);
 	*(BYTE*)(&FreeConsole) = 0xC3;
 	SetConsoleTitle("roblox addy grabber");
+	/*
+	Accessing the main function where we handle the aob scanning procedure.
+	*/
 	main();
 }
 
